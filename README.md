@@ -3,6 +3,9 @@
 Uma ferramenta web em **Python** e **Streamlit** que automatiza a criação de relatórios executivos de RH a partir de planilhas de dados (XLSX e CSV).  
 O MVP integra uma análise estratégica gerada por IA com armazenamento na nuvem (**AWS S3**) para garantir eficiência, consistência e acesso facilitado.
 
+**Acesse a Página de Apresentação do Projeto:**
+[**https://leonardolabdc.github.io/gerador_relatorios_ia/**](https://leonardolabdc.github.io/gerador_relatorios_ia/)
+
 ---
 
 ## ✅ Funcionalidades
