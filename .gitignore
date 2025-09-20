@@ -1,0 +1,6 @@
+.venv/
+.streamlit/
+relatorios/
+pycache/
+*.pyc
+.DS_Store
