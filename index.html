@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infográfico do Projeto: Gerador de Relatórios com IA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F0F2F5;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 450px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 40vh;
+            max-height: 450px;
+        }
+        .timeline-item {
+            position: relative;
+            padding-bottom: 2rem;
+            padding-left: 2.5rem; 
+        }
+        .timeline-item:last-child {
+            padding-bottom: 0;
+        }
+        .timeline-marker {
+            position: absolute;
+            left: 0;
+            top: 0.25rem;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 4px solid #005F73;
+            background-color: #94D2BD;
+        }
+        .timeline-line {
+            position: absolute;
+            left: 9px;
+            top: 1.5rem;
+            bottom: -0.5rem;
+            width: 2px;
+            background-color: #0A9396;
+        }
+        .timeline-item:last-child .timeline-line {
+            display: none;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-5xl">
+
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-[#005F73] mb-2">Projeto: Gerador de Relatórios com IA</h1>
+            <p class="text-lg text-[#0A9396]">Uma Solução Automatizada para Análise de Dados de RH</p>
+        </header>
+
+        <main class="space-y-16">
+            
+            <section id="problem" class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                <h2 class="text-3xl font-bold text-[#005F73] mb-4 text-center">O Problema de Negócio</h2>
+                <p class="text-center text-lg mb-6 max-w-3xl mx-auto">O desafio era modernizar um processo de criação de relatórios de RH que, quando feito manualmente, é ineficiente, propenso a erros e consome um tempo valioso que poderia ser usado para análises estratégicas.</p>
+                <div class="bg-[#0A9396] text-white rounded-lg p-8 text-center">
+                    <p class="text-2xl font-medium mb-2">Tempo Estimado para Geração Manual</p>
+                    <p class="text-6xl md:text-7xl font-extrabold text-[#E9D8A6]">4 a 8 Horas</p>
+                    <p class="mt-2 text-lg">transformadas em segundos.</p>
+                </div>
+            </section>
+
+            <section id="solution" class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                <h2 class="text-3xl font-bold text-[#005F73] mb-6 text-center">A Solução: Um MVP Inteligente</h2>
+                <p class="text-center text-lg mb-8 max-w-3xl mx-auto">Foi desenvolvido um MVP (Produto Mínimo Viável) de uma ferramenta web que automatiza todo o fluxo de trabalho, desde o upload dos dados até o armazenamento seguro do relatório final na nuvem.</p>
+                <div class="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-4 text-center">
+                    <div class="p-4 bg-gray-100 rounded-lg shadow-sm">
+                        <span class="text-4xl">📥</span>
+                        <h3 class="font-bold mt-2 text-[#005F73]">1. Upload Dinâmico</h3>
+                        <p class="text-sm">O usuário envia qualquer<br>planilha (XLSX ou CSV).</p>
+                    </div>
+                    <div class="text-2xl text-[#0A9396] font-bold mx-2">→</div>
+                    <div class="p-4 bg-gray-100 rounded-lg shadow-sm">
+                        <span class="text-4xl">🤖</span>
+                        <h3 class="font-bold mt-2 text-[#005F73]">2. Análise com IA</h3>
+                        <p class="text-sm">A IA do Google Gemini gera<br>um relatório executivo.</p>
+                    </div>
+                    <div class="text-2xl text-[#0A9396] font-bold mx-2">→</div>
+                    <div class="p-4 bg-gray-100 rounded-lg shadow-sm">
+                        <span class="text-4xl">☁️</span>
+                        <h3 class="font-bold mt-2 text-[#005F73]">3. Armazenamento na Nuvem</h3>
+                        <p class="text-sm">O relatório é salvo<br>automaticamente no AWS S3.</p>
+                    </div>
+                     <div class="text-2xl text-[#0A9396] font-bold mx-2">→</div>
+                     <div class="p-4 bg-gray-100 rounded-lg shadow-sm">
+                        <span class="text-4xl">📈</span>
+                        <h3 class="font-bold mt-2 text-[#005F73]">4. Acesso e Análise</h3>
+                        <p class="text-sm">O usuário acessa e baixa o<br>relatório de um histórico.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tech-stack" class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                    <h2 class="text-3xl font-bold text-[#005F73] mb-4 text-center">Tecnologias Utilizadas</h2>
+                    <p class="text-center text-lg mb-8 max-w-3xl mx-auto">A escolha das tecnologias foi focada em agilidade, escalabilidade e robustez, combinando um framework de frontend rápido com o poder de uma IA generativa e armazenamento em nuvem confiável.</p>
+                <div class="chart-container">
+                    <canvas id="techStackChart"></canvas>
+                </div>
+            </section>
+
+            <section id="challenges" class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                <h2 class="text-3xl font-bold text-[#005F73] mb-8 text-center">O Processo de Desenvolvimento: Superando Desafios</h2>
+                <div class="max-w-2xl mx-auto">
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-line"></div>
+                        <h3 class="text-xl font-bold text-[#CA6702]">Configuração do Ambiente</h3>
+                        <p class="mt-1"><strong>Desafio:</strong> Erros complexos de conexão e ambiente (`ERR_NGROK_108`, `TimeoutException`) ao tentar rodar a aplicação em diferentes plataformas (Colab, VS Code).</p>
+                        <p class="mt-1 font-medium text-[#005F73]"><strong>Solução:</strong> Foi realizado um processo metódico de depuração, incluindo a criação de um ambiente virtual (`venv`) limpo e a configuração correta das credenciais de serviço, demonstrando a importância de um setup de desenvolvimento robusto.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-line"></div>
+                        <h3 class="text-xl font-bold text-[#CA6702]">Formatação Inconsistente da IA</h3>
+                        <p class="mt-1"><strong>Desafio:</strong> A IA, inicialmente, gerava relatórios com dados incompletos ou formatação HTML quebrada, o que comprometia a consistência do produto final.</p>
+                        <p class="mt-1 font-medium text-[#005F73]"><strong>Solução:</strong> A estratégia foi redefinida através da **engenharia de prompt**. Em vez de pedir HTML, o código passou a solicitar um objeto **JSON** estruturado. O script Python, então, constrói o HTML final, garantindo 100% de consistência e precisão.</p>
+                    </div>
+                    <div class="timeline-item">
+                         <div class="timeline-marker"></div>
+                        <h3 class="text-xl font-bold text-[#CA6702]">Integração com a Nuvem (AWS S3)</h3>
+                        <p class="mt-1"><strong>Desafio:</strong> A configuração de permissões no AWS S3 (ACLs vs. Políticas de Bucket) e a compatibilidade com a aplicação apresentaram desafios de segurança e acesso.</p>
+                        <p class="mt-1 font-medium text-[#005F73]"><strong>Solução:</strong> O código e as configurações do S3 foram ajustados para seguir as práticas modernas de segurança da AWS, utilizando políticas de bucket em vez de ACLs. Isso demonstra a capacidade de aprender e aplicar tecnologias de nuvem de forma correta e segura.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="conclusion" class="bg-[#005F73] text-white rounded-xl shadow-lg p-6 md:p-8 text-center">
+                    <h2 class="text-3xl font-bold mb-4">Conclusão</h2>
+                    <p class="text-lg max-w-3xl mx-auto">Este MVP não apenas resolve um problema de negócio real, mas também é um testemunho da capacidade de depurar, aprender e construir uma solução completa e robusta, integrando tecnologias de frontend, inteligência artificial e computação em nuvem.</p>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const ctx = document.getElementById('techStackChart').getContext('2d');
+            const techStackChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Frontend (Streamlit)', 'IA (Google Gemini)', 'Nuvem (AWS S3)', 'Dados (Pandas)', 'Integração (Boto3)'],
+                    datasets: [{
+                        label: 'Tecnologias',
+                        data: [30, 25, 20, 15, 10],
+                        backgroundColor: [
+                            '#0A9396',
+                            '#94D2BD',
+                            '#EE9B00',
+                            '#CA6702',
+                            '#BB3E03'
+                        ],
+                        borderColor: '#FFFFFF',
+                        borderWidth: 3,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#005F73',
+                                font: {
+                                    size: 14,
+                                    weight: '500'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function(tooltipItems) {
+                                    const item = tooltipItems[0];
+                                    let label = item.chart.data.labels[item.dataIndex];
+                                    if (Array.isArray(label)) {
+                                        return label.join(' ');
+                                    } else {
+                                        return label;
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    cutout: '50%'
+                }
+            });
+        });
+    </script>
+</body>
+</html>
