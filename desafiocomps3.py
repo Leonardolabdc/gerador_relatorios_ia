@@ -15,8 +15,56 @@ st.set_page_config(
 )
 
 # Título e descrição do app
-st.title("Gerador de Relatórios em HTML com Gemini")
-st.write("Faça o upload de uma planilha XLSX ou CSV para gerar um relatório com IA.")
+st.title("Gerador de Relatórios com IA")
+st.write("Um chat para gerar relatórios profissionais a partir de seus dados.")
+
+# --- NOVO: Seção de Histórico de Relatórios movida para o topo ---
+st.subheader("Histórico de Relatórios (S3)")
+st.write("Aqui, você pode ver e baixar todos os relatórios salvos no S3.")
+
+bucket_name = st.secrets.get("S3_BUCKET_NAME")
+if bucket_name:
+    try:
+        s3 = boto3.client(
+            's3',
+            aws_access_key_id=st.secrets["AWS_ACCESS_KEY_ID"],
+            aws_secret_access_key=st.secrets["AWS_SECRET_ACCESS_KEY"]
+        )
+        s3_objects = s3.list_objects_v2(Bucket=bucket_name)
+        
+        if 'Contents' in s3_objects:
+            relatorios_salvos = sorted([obj['Key'] for obj in s3_objects['Contents']], reverse=True)
+            
+            selected_file = st.selectbox(
+                "Selecione um relatório:",
+                options=relatorios_salvos,
+                index=0
+            )
+
+            if selected_file:
+                st.markdown(f'<a href="https://{bucket_name}.s3.sa-east-1.amazonaws.com/{selected_file}" target="_blank">Visualizar no S3</a>', unsafe_allow_html=True)
+                
+                response = s3.get_object(Bucket=bucket_name, Key=selected_file)
+                file_content = response['Body'].read().decode('utf-8')
+                
+                st.download_button(
+                    label=f"Baixar {selected_file}",
+                    data=file_content,
+                    file_name=selected_file,
+                    mime="text/html"
+                )
+        else:
+            st.info("Nenhum relatório foi encontrado no seu bucket S3.")
+    
+    except Exception as e:
+        st.error(f"Erro ao conectar com o S3 ou listar arquivos: {e}. Verifique suas credenciais.")
+else:
+    st.info("Por favor, configure o nome do seu bucket no arquivo '.streamlit/secrets.toml'.")
+
+st.markdown("---") # Linha divisória para separar as seções
+
+# --- FIM da seção de histórico movida ---
+
 
 # --- Autenticação da API ---
 try:
@@ -61,7 +109,7 @@ def generate_report(df, original_filename):
     df_string_para_analise = df.to_markdown(index=False)
     
     prompt = f"""
-  Você é um analista de dados de RH sênior. Sua tarefa é analisar os dados de uma planilha e retornar um objeto JSON com um relatório profissional e padronizado.
+    Você é um analista de dados de RH sênior. Sua tarefa é analisar os dados de uma planilha e retornar um objeto JSON com um relatório profissional e padronizado.
 
     Estrutura do JSON:
     {{
@@ -128,113 +176,88 @@ def generate_report(df, original_filename):
 
 
 # --- Interface do Usuário ---
-# ATUALIZAÇÃO: Tradução do file uploader com CSS mais robusto
-st.html("""
-<style>
-    [data-testid="stFileUploadDropzone"] p,
-    [data-testid="stFileUploadDropzone"] label {
-        display: none;
-    }
-    [data-testid="stFileUploadDropzone"] div[data-testid="stFileUploaderDropzoneInstructions"] > div::before {
-        content: "Arraste e solte o arquivo aqui";
-        display: block;
-        text-align: center;
-        color: #888;
-        font-size: 14px;
-        margin-bottom: 5px;
-    }
-    [data-testid="stFileUploadDropzone"] div[data-testid="stFileUploaderDropzoneInstructions"] button {
-        content: "Procurar arquivos";
-    }
-</style>
-""")
 
-uploaded_file = st.file_uploader("Escolha um arquivo XLSX ou CSV", type=["xlsx", "csv"])
+# Inicializa o histórico do chat
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+# Adiciona o estado para o arquivo
+if "uploaded_file" not in st.session_state:
+    st.session_state.uploaded_file = None
 
-if uploaded_file:
+# Adiciona a mensagem inicial apenas se o chat estiver vazio
+if not st.session_state.messages:
+    st.session_state.messages.append({"role": "assistant", "content": "Olá! Estou pronto para ajudar. No que está trabalhando hoje?"})
+
+# Exibe as mensagens existentes no chat
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        if "content" in message:
+            st.markdown(message["content"], unsafe_allow_html=True)
+        if "data" in message:
+            if message["type"] == "df":
+                st.dataframe(message["data"])
+            elif message["type"] == "html":
+                st.download_button(
+                    label=message["label"],
+                    data=message["data"],
+                    file_name=message["file_name"],
+                    mime="text/html"
+                )
+                if "s3_url" in message:
+                    st.markdown(f'<a href="{message["s3_url"]}" target="_blank">Visualizar Relatório no S3</a>', unsafe_allow_html=True)
+                
+                # Re-adiciona a aba de visualização local
+                with st.expander("Ver Análise e Dados Completos"):
+                    st.components.v1.html(message["data"], height=600, scrolling=True)
+
+
+# Lógica para o upload do arquivo
+uploaded_file = st.file_uploader("Escolha um arquivo XLSX ou CSV", type=["xlsx", "csv"], label_visibility="collapsed")
+if uploaded_file and uploaded_file != st.session_state.uploaded_file:
+    st.session_state.uploaded_file = uploaded_file
+    st.session_state.messages.append({"role": "user", "content": f"Arquivo '{uploaded_file.name}' carregado."})
+    st.session_state.messages.append({"role": "assistant", "content": "Processando o arquivo... Por favor, aguarde."})
+    
     try:
         if uploaded_file.name.endswith('.csv'):
             df = pd.read_csv(uploaded_file)
         else:
             df = pd.read_excel(uploaded_file)
-    
-        st.success("Arquivo carregado com sucesso!")
-        st.subheader("Pré-visualização dos Dados")
-        st.dataframe(df.head())
-
-        if st.button("Gerar Relatório em HTML"):
-            report_html = generate_report(df, uploaded_file.name)
-            
-            if report_html:
-                st.subheader("Relatório Gerado")
-                
-                bucket_name = st.secrets["S3_BUCKET_NAME"]
-                file_base_name = os.path.splitext(uploaded_file.name)[0]
-                clean_name = file_base_name.replace(" ", "_").lower()
-                timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-                s3_filename = f"{clean_name}_{timestamp}.html"
-                
-                s3_url = upload_to_s3(report_html, s3_filename, bucket_name)
-                
-                if s3_url:
-                    st.success(f"Relatório salvo com sucesso no S3. URL: {s3_url}")
-                    st.markdown(f'<a href="{s3_url}" target="_blank">Visualizar Relatório no S3</a>', unsafe_allow_html=True)
-                
-                st.download_button(
-                    label="Baixar Cópia Local",
-                    data=report_html,
-                    file_name=f"{clean_name}_{timestamp}.html",
-                    mime="text/html"
-                )
-
-                st.info("O link acima permite que você acesse o relatório hospedado. O botão abaixo baixa uma cópia local.")
-                
-                with st.expander("Ver Análise e Dados Completos"):
-                    st.components.v1.html(report_html, height=600, scrolling=True)
-
     except Exception as e:
-        st.error(f"Erro ao processar o arquivo. Verifique se é um arquivo válido. Erro: {e}")
+        st.session_state.messages.append({"role": "assistant", "content": f"Ocorreu um erro ao processar o arquivo. Por favor, tente novamente. Erro: {e}"})
+        st.rerun()
 
-# --- Nova Seção: Histórico de Relatórios ---
-st.markdown("---")
-st.subheader("Histórico de Relatórios (S3)")
-st.write("Aqui, você pode ver e baixar todos os relatórios salvos no S3.")
-
-bucket_name = st.secrets.get("S3_BUCKET_NAME")
-if bucket_name:
-    try:
-        s3 = boto3.client(
-            's3',
-            aws_access_key_id=st.secrets["AWS_ACCESS_KEY_ID"],
-            aws_secret_access_key=st.secrets["AWS_SECRET_ACCESS_KEY"]
-        )
-        s3_objects = s3.list_objects_v2(Bucket=bucket_name)
+    st.session_state.messages.append({"role": "assistant", "content": "Arquivo carregado com sucesso! Aqui está uma pré-visualização dos dados.", "type": "df", "data": df.head()})
+    st.session_state.messages.append({"role": "assistant", "content": "Gerando o relatório com IA... Por favor, aguarde."})
+    
+    report_html = generate_report(df, uploaded_file.name)
+    
+    if report_html:
+        bucket_name = st.secrets["S3_BUCKET_NAME"]
+        file_base_name = os.path.splitext(uploaded_file.name)[0]
+        clean_name = file_base_name.replace(" ", "_").lower()
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        s3_filename = f"{clean_name}_{timestamp}.html"
         
-        if 'Contents' in s3_objects:
-            relatorios_salvos = sorted([obj['Key'] for obj in s3_objects['Contents']], reverse=True)
-            
-            selected_file = st.selectbox(
-                "Selecione um relatório:",
-                options=relatorios_salvos,
-                index=0
-            )
+        s3_url = upload_to_s3(report_html, s3_filename, bucket_name)
+        
+        final_message = "Seu relatório foi gerado com sucesso! Você pode visualizá-lo ou fazer o download abaixo."
+        
+        st.session_state.messages.append({
+            "role": "assistant",
+            "content": final_message,
+            "type": "html",
+            "label": "Baixar Relatório",
+            "data": report_html,
+            "file_name": f"{clean_name}_{timestamp}.html",
+            "mime": "text/html",
+            "s3_url": s3_url
+        })
+    st.rerun()
 
-            if selected_file:
-                st.markdown(f'<a href="https://{bucket_name}.s3.sa-east-1.amazonaws.com/{selected_file}" target="_blank">Visualizar no S3</a>', unsafe_allow_html=True)
-                
-                response = s3.get_object(Bucket=bucket_name, Key=selected_file)
-                file_content = response['Body'].read().decode('utf-8')
-                
-                st.download_button(
-                    label=f"Baixar {selected_file}",
-                    data=file_content,
-                    file_name=selected_file,
-                    mime="text/html"
-                )
-        else:
-            st.info("Nenhum relatório foi encontrado no seu bucket S3.")
-    
-    except Exception as e:
-        st.error(f"Erro ao conectar com o S3 ou listar arquivos: {e}. Verifique suas credenciais.")
-else:
-    st.info("Por favor, configure o nome do seu bucket no arquivo '.streamlit/secrets.toml'.")
+# Lógica para a caixa de texto
+user_input = st.chat_input("Digite sua mensagem...")
+if user_input:
+    st.session_state.messages.append({"role": "user", "content": user_input})
+    st.session_state.messages.append({"role": "assistant", "content": "Para gerar o relatório, por favor, arraste e solte ou faça o upload de uma planilha."})
+    st.rerun()
